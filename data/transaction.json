@@ -1,0 +1,38 @@
+[{
+    "billingAmount": "123",
+    "shippingSameAsBilling": false,
+    "email": "sreejith.vikraman@gmail.com",
+    "billingName": "Sajith Nair",
+    "billingAddress": "Bangalore",
+    "billingCity": "Bangalore",
+    "billingState": "AK",
+    "billingPostalCode": "560017",
+    "billingCountry": "US",
+    "shippingName": "Sajith",
+    "shippingAddress": "Bangalore",
+    "shippingCity": "Bangalore",
+    "shippingState": "AK",
+    "shippingPostalCode": "560017",
+    "shippingCountry": "US",
+    "cardNumber": "4111111111111111",
+    "expiryDate": "12/22",
+    "cvv": 123,
+    "merchantID": "c5d4nbs6lr8p0a9194o0"
+},
+
+{
+    "Amount": "170",
+    "BillingEmail": "sree@me.com",
+    "BillingCustomerName": "S V",
+    "BillingAddress": "8871 W Flamingo Rd",
+    "BillingCity": "Las Vegas",
+    "BillingState": "NV",
+    "BillingPostalCode": "89147",
+    "BillingCountry": "USA",
+    "BillingPhoneNumber":"1111111111",
+    "CardNumber": "4111111111111111",
+    "ExpiryDate": "12/22",
+    "Cvv": "111",
+    "MerchantId":"bb7facc6-6f8e-4a23-91d2-ad0d4b24c0a2"
+}]
+

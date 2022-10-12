@@ -1,0 +1,332 @@
+openapi: 3.0.0
+info:
+  title: Aux-Pay
+  description: This is my company API Documentation
+  version: 1
+  contact:
+    email: sreejith.vikraman@gmail.com
+  liscence:
+    name: Apache 2.0
+    url: 'http://www.apache.org/liscences/LIS'
+  servers:
+    '-url': 'http://localhost:8001'
+    description: THis is my local Server
+schemes:
+  - http
+  - https
+tags:
+  - name: User
+    description: Everything about User
+  - name: Role
+    description: About roles
+  - name: Customer
+    description: About customers
+paths:
+  /api/v1/auth/login:
+    post:
+      tags:
+        - User
+      summary: User Login.
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: user
+          description: null
+          schema:
+            type: object
+            required:
+              - Email
+            properties:
+              Email:
+                type: string
+              Password:
+                type: string
+      responses:
+        '201':
+          description: Created
+  /api/v1/users:
+    get:
+      tags:
+        - User
+      security:
+        - jwt: []
+      summary: Returns a list of users.
+      description: People Who are already registered
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            type: array
+            items:
+              type: object
+  /api/v1/users/create:
+    post:
+      tags:
+        - User
+      security:
+        - jwt: []
+      summary: Creates a new user.
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: user
+          description: The user to create.
+          schema:
+            type: object
+            required:
+              - Email
+            properties:
+              Email:
+                type: string
+              FullName:
+                type: string
+              Password:
+                type: string
+              CompanyName:
+                type: string
+              PhoneNumber:
+                type: string
+      responses:
+        '201':
+          description: Created
+  '/api/v1/users/delete/{id}':
+    put:
+      tags:
+        - User
+      security:
+        - jwt: []
+      summary: Delete user.
+      description: User deleted.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: UUID required
+          schema: null
+          type: string
+      responses:
+        '200': null
+  /api/v1/users/{id}:
+    get:
+      tags:
+        - User
+      security:
+        - jwt: []
+      summary: Get a single user.
+      description: Get User.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: UUID required
+          schema: null
+          type: string
+      responses:
+        '200': null
+    /api/v1/users/{id}:
+    put:
+      tags:
+        - User
+      security:
+        - jwt: []
+      summary: Update user.
+      consumes:
+        - application/json
+      description: User updated.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: UUID required
+          schema:
+            type: object
+            required:
+              - Email
+          properties:
+            Email:
+              type: string
+            FullName:
+              type: string
+            UUID:
+              type: string
+            Password:
+              type: string
+            CompanyName:
+              type: string
+            GatewayApiKey:
+              type: string
+            PhoneNumber:
+              type: string
+      responses:
+        '200': null
+  /api/v1/roles:
+    get:
+      tags:
+        - Role
+      security:
+        - jwt: []
+      summary: Returns a list of roles.
+      description: People Who are already registered
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            type: array
+          items:
+            type: object
+  /api/v1/roles/create:
+    post:
+      tags:
+        - Role
+      security:
+        - jwt: []
+      summary: Creates a new role.
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: user
+          description: The user to create.
+          schema:
+            type: object
+            required:
+              - Email
+            properties:
+              Email:
+                type: string
+              FullName:
+                type: string
+              UUID:
+                type: string
+              Password:
+                type: string
+              CompanyName:
+                type: string
+              GatewayApiKey:
+                type: string
+              PhoneNumber:
+                type: string
+      responses:
+        '201':
+          description: Created
+  /api/v1/roles/delete/{id}:
+    put:
+      tags:
+        - Role
+      security:
+        - jwt: []
+      summary: Delete user.
+      description: User deleted.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: UUID required
+          schema: null
+          type: string
+      responses:
+        '200': null
+  /api/v1/customer/create:
+    post:
+      tags:
+        - Customer
+      security:
+        - jwt: []
+      summary: Creates a new Customer.
+      consumes:
+        - application/json
+      parameters:
+        - in: body
+          name: Customer
+          description: The Customer to create.
+          schema:
+            type: object
+            properties:
+              CustomerName:
+                type: string
+              Address:
+                type: string
+              City:
+                type: string
+              StateId:
+                type: integer
+              CountryId:
+                type: integer
+              PhoneNumber:
+                type: string
+              PostalCode:
+                type: string
+              Email:
+                type: string
+              UserId:
+                type: integer
+      responses:
+        '201':
+          description: Created
+  /api/v1/customer:
+    get:
+      tags:
+        - Customer
+      security:
+        - jwt: []
+      summary: Returns a list of customers.
+      description: People Who are already added by merchant
+      responses:
+        '200':
+          description: Successful Response
+          schema:
+            type: array
+            items:
+              type: object
+  /api/v1/users/updatestatus/{id}:
+    patch:
+      tags:
+        - User
+      security:
+        - jwt: []
+      summary: Update User Status.
+      consumes:
+        - application/json
+      description: Status updated.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: UUID required
+          schema:
+            type: object            
+          properties:
+            IsActive:
+              type: boolean
+      responses:
+        '200': null
+  /api/v1/users/changepassword/{id}:
+    patch:
+      tags:
+        - User
+      security:
+        - jwt: []
+      summary: Update User Status.
+      consumes:
+        - application/json
+      description: Status updated.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          description: UUID required
+          schema:
+            type: object            
+          properties:
+            Password:
+              type: string
+      responses:
+        '200': null
+components:
+  securitySchemes:
+    jwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

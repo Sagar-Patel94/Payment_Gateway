@@ -1,0 +1,5 @@
+node_modules
+config.env
+testFile.js
+package-lock.json
+temp.js

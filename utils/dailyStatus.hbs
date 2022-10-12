@@ -1,0 +1,35 @@
+<html>
+
+<head>
+  <title></title>
+</head>
+
+<body>
+  <div data-role="module-unsubscribe" class="module" role="module" data-type="unsubscribe"
+    style="color:#444444; font-size:16px; line-height:20px; padding:16px 16px 16px 16px; text-align:left;"
+    data-muid="4e838cf3-9892-4a6d-94d6-170e474d21e5">
+    <div class="Unsubscribe--addressLine">
+      <p class="Unsubscribe--senderName" style="font-size:30px;line-height:20px,float:left">
+        Transaction Report
+      </p>
+      <p>Transactions for {{comapanyName}} for {{currentDate}}</p>
+      <hr>
+      <p>No of Credit Card Sale Transaction: {{SaleTotalNumber}}</p>
+      <p>No of Credit Card Authorization Transaction: {{AuthTotalNumber}}</p>
+      <p>Credit Card Sale Amount: ${{TotalSaleAmount}}</p>
+      <p>Credit Card Authorization Amount: ${{TotalAuthAmount}}</p>
+      {{!-- <p>No of Card Transaction: {{Status}}</p> --}}
+      {{!-- <p>No of Cash Transaction: 0</p> --}}
+      <p>No of Refund Transaction: {{RefundTransactionsTotal}}</p>
+      <p>No of Capture Transaction: {{CaptureTransactionsTotal}}</p>
+      <p>No of Void Transaction: {{VoidTransactionsTotal}}</p>
+    </div>
+    <hr>
+    <p style="font-size:15px; line-height:20px;text-align=center;">
+      The information contained in this e-mail and in any attachments is intended only for the person
+      or entity to which it is addressed and may contain confidential and/or previlaged material.
+    </p>
+  </div>
+</body>
+
+</html>
