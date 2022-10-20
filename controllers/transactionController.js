@@ -410,6 +410,7 @@ exports.getAllTransactions = async (req, res) => {
   console.log('My Dates', dateFrom, dateTo);
   console.log('My zone', Intl.DateTimeFormat().resolvedOptions().timeZone);
   console.log('My times', timeDiffFrom, timeDiffTo);
+
   if (req.query.convenienceFee && req.query.convenienceFee != '') {
     convFeeFilter = req.query.convenienceFee.split(',');
     conditionsArray.push({
@@ -418,6 +419,7 @@ exports.getAllTransactions = async (req, res) => {
       },
     });
   }
+
   await models.Transaction.findAndCountAll({
     // subQuery: false,
     include: includeTables,
@@ -5182,7 +5184,7 @@ exports.refundTransactions = async (req, res) => {
 exports.userGateWay = async (userId, transactionId) => {
   if (userId != null) {
     let userGateWayData = '';
-
+    
     if (transactionId.TransactionGateWay == 'Payrix') {
       userGateWayData = await models.MerchantPaymentGateWay.findOne({
         where: {
@@ -5329,25 +5331,27 @@ exports.fluidRefundTransactions = async (
   transactionId,
   res
 ) => {
+  
+  console.log(userGateWayData.GatewayApiKey, "*******/////")
   const txnData = await exports.getTxnFromFluidPay(
     req.body.TransactionId,
     userGateWayData.GatewayApiKey
-  );
-
+    );
+    return;
   if (req.body.TransactionId != undefined && req.body.MerchantId != undefined) {
     const txntype = exports.TransactionType(req.body.TransactionFor);
-
+    
     const requestHeader = {
       'Content-Type': 'application/json',
       Authorization: userGateWayData.GatewayApiKey,
     };
-
+    
     let requestOptions = '';
     let jsonString = '';
     if (
       req.body.Amount != undefined &&
       req.body.TransactionFor != 'FullRefund'
-    ) {
+      ) {
       jsonString = JSON.stringify({
         amount: Math.round(parseFloat(req.body.Amount) * 100),
       });
@@ -5366,7 +5370,9 @@ exports.fluidRefundTransactions = async (
         body: jsonString,
       };
     }
-
+    
+    res.status(200).json(txnData['data'].status);
+    return;
     if (txnData['data'].status == 'settled' && transactionId.Type != '2') {
       const requestCreated = {
         GatewayType: userGateWayData.GatewayType,
@@ -5381,6 +5387,7 @@ exports.fluidRefundTransactions = async (
         requestOptions
       );
       const data = await response.json();
+
       if (data.status === 'success') {
         const transData = data['data'];
         const RequestResponse = {
@@ -5392,17 +5399,82 @@ exports.fluidRefundTransactions = async (
         const resCreated = await models.ResponseRequestTable.create(
           RequestResponse
         );
-        const updateTransaction = await models.Transaction.update(
+        // create new txn for refund
+
+        const createNewTransaction = await models.Transaction.create(
           {
-            Refund: true,
-            TransactionId: transData.id,
-          },
-          {
-            where: {
-              id: transactionId.id,
-            },
+            TransactionId: newDataC['data'].id,
+            CustomerId: findCustomer.id,
+            MerchantId: userInfo.id,
+            Amount: req.body.Amount,
+            CardNumber: newDataC['data'].response_body['card'].last_four,
+            PaymentMethod: paymentMethods,
+            Type: req.body.TransactionType,
+            Status: newDataC['data'].status,
+            BillingEmail: newDataC['data'].billing_address['email'],
+            BillingCustomerName: newDataC['data'].billing_address['first_name'],
+            BillingAddress: newDataC['data'].billing_address['address_line_1'],
+            BillingCity: newDataC['data'].billing_address['city'],
+            BillingState: stateData != undefined ? stateData.id : null,
+            BillingPostalCode: newDataC['data'].billing_address['postal_code'],
+            BillingCountry: countryData != undefined ? countryData.id : null,
+            BillingCountryCode: req.body.BillingCountryCode,
+            BillingPhoneNumber: newDataC['data'].billing_address['phone'],
+            IsShippingSame: req.body.shippingSameAsBilling,
+            ShippingEmail: newDataC['data'].billing_address['email'],
+            ShippingCustomerName:
+              newDataC['data'].billing_address['first_name'],
+            ShippingAddress: newDataC['data'].billing_address['address_line_1'],
+            ShippingCity: newDataC['data'].billing_address['city'],
+            ShippingState: stateData != undefined ? stateData.id : null,
+            ShippingPostalCode: newDataC['data'].billing_address['postal_code'],
+            ShippingCountry: countryData != undefined ? countryData.id : null,
+            ShippingPhoneNumber: newDataC['data'].billing_address['phone'],
+            ExpiryDate: req.body.ExpiryDate.replace(/\s/g, '').replace(
+              /\\|\//g,
+              ''
+            ),
+            Cvv: req.body.Cvv,
+            ConvenienceFeeValue: feeAmount != 0 ? feeAmount : 0,
+            ConvenienceFeeMinimum: userGateWayData.ConvenienceFeeMinimum,
+            ConvenienceFeeType: userGateWayData.ConvenienceFeeType,
+            AuthCode: newDataC['data'].response_body['card'].auth_code,
+            TransactionGateWay: 'FluidPay',
+            Refund: false,
+            Void: false,
+            Capture: false,
+            Tokenization: false, // req.body.PaymentTokenization,
+            Message: req.body.Message,
+            Description: req.body.Description,
+            ReferenceNo: req.body.ReferenceNo,
+            ConvenienceFeeActive:
+              minmumTxn != ''
+                ? minmumTxn
+                : userGateWayData.ConvenienceFeeActive,
+            RequestOrigin: req.body.RequestOrigin,
+            createdAt: newDataC['data'].created_at,
+            updatedAt: newDataC['data'].updated_at,
+            ProcessorId: userGateWayData.ProcessorId,
+            SuggestedMode:
+              req.body.SuggestedMode != undefined
+                ? req.body.SuggestedMode
+                : 'Card',
+            TipAmount: parseFloat(req.body.TipAmount),
           }
-        );
+        )
+
+        
+        // const updateTransaction = await models.Transaction.update(
+        //   {
+        //     Refund: true,
+        //     TransactionId: transData.id,
+        //   },
+        //   {
+        //     where: {
+        //       id: transactionId.id,
+        //     },
+        //   }
+        // );
         const newTxn = {
           Amount: transData.amount / 100,
           UserId: userInfo.id,
@@ -5678,6 +5750,8 @@ exports.getTxnFromFluidPay = async (txnId, privateKey) => {
       requestOptions
     );
     const data = await response.json();
+    console.log("++++++++++++++++++++++++++++++", response, "****************************")
+
     if (data.status === 'success') {
       return data;
     } else {
@@ -10797,14 +10871,11 @@ exports.authorizenetTransactionThree = async (
         res
       );
     }
-    let cardNumber = req.body.CardNumber.substring(0,8);
+    let cardNumber = req.body.CardNumber.substring(0, 8);
     const cardTypeData = await exports.checkCardType(cardNumber);
     let cardType = cardTypeData._embedded.cards[0].account.funding;
     let processorLvl;
-    if (
-      cardType === 'debit' &&
-      userGateWayData.ConvenienceFeeActive == true
-    ) {
+    if (cardType === 'debit' && userGateWayData.ConvenienceFeeActive == true) {
       processorLvl = 'QuantumA';
     } else if (
       cardType === 'debit' &&
@@ -10837,7 +10908,9 @@ exports.authorizenetTransactionThree = async (
     var merchantAuthenticationType =
       new ApiContracts.MerchantAuthenticationType();
     merchantAuthenticationType.setName(gatewayData.GatewayApiKey);
-    merchantAuthenticationType.setTransactionKey(gatewayData.AuthTransactionKey);
+    merchantAuthenticationType.setTransactionKey(
+      gatewayData.AuthTransactionKey
+    );
 
     var creditCard = new ApiContracts.CreditCardType();
     creditCard.setCardNumber(req.body.CardNumber);
@@ -11340,6 +11413,7 @@ exports.AuthorizenetRefundTransactions = async (
         let transactionDetails = await models.Transaction.findOne({
           where: { TransactionId: req.body.TransactionId },
         });
+
         if (transactionDetails) {
           let cardDetails = await models.Card.findOne({
             where: {
@@ -11396,8 +11470,12 @@ exports.AuthorizenetRefundTransactions = async (
             apiResponse
           );
           //pretty print response
-          console.log(JSON.stringify(response, null, 2));
+          // console.log(JSON.stringify(response, null, 2));
           if (response != null) {
+            console.log("//////////////////////", apiResponse, "///////////////////")
+            console.log(ApiContracts.MessageTypeEnum.OK, "********************")
+            res.status(200).json(createRequest);
+            return;
             if (
               response.getMessages().getResultCode() ==
               ApiContracts.MessageTypeEnum.OK
@@ -11463,7 +11541,7 @@ exports.AuthorizenetRefundTransactions = async (
                 response.getTransactionResponse().getErrors() != null
               ) {
                 res.status(500).json({
-                  message: response.getMessages().getMessage()[0].getText(),
+                  messagess: response.getMessages().getMessage()[0].getText(),
                 });
               } else {
                 res.status(500).json({
@@ -11496,7 +11574,7 @@ exports.AuthorizenetRefundTransactions = async (
     Sentry.captureException(error);
     return res.status(500).json({
       status: 'error',
-      message: error,
+      message: error.message,
     });
   }
 };

@@ -1363,8 +1363,8 @@ exports.merchantStatement = async (req, res) => {
   } catch (error) {
     Sentry.captureException(error);
     res.status(500).json({
-      message: 'Something Went Wrong',
-      error: error,
+      message: 'Something Went Wrong!!!!!!!!!',
+      error: error.message,
     });
   }
 };
@@ -1396,6 +1396,7 @@ exports.summaryByMethod = async (req, res) => {
     const findUser = await models.User.findOne({
       where: { id: req.query.mid },
     });
+
     if (findUser != null) {
       termainalCount = await models.Transaction.findAll({
         subQuery: false,

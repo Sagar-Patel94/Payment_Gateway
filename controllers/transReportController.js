@@ -31,6 +31,7 @@ exports.getAggreagteTransactions = async (req, res) => {
   tempPaidBy = '';
   let custId = '';
 
+  
   if (req.query.result != undefined) {
     statusValue = req.query.result.split(',');
   } else {
@@ -47,13 +48,13 @@ exports.getAggreagteTransactions = async (req, res) => {
   } else {
     tempPaidBy = '';
   }
-
+  
   if (req.query.custId != undefined) {
     custId = req.query.custId.split(',');
   } else {
     custId = '';
   }
-
+  
   let paidBy = '';
   if (tempPaidBy.length > 0) {
     for (let i = 0; i < tempPaidBy.length; i++) {
@@ -129,7 +130,6 @@ exports.getAggreagteTransactions = async (req, res) => {
       },
     });
   }
-
   await models.Transaction.findAll({
     // subQuery: false,
     attributes: [
@@ -206,6 +206,7 @@ exports.getAggreagteTransactions = async (req, res) => {
           }
         }
       }
+
       const combinedTransaction = await models.Transaction.findAll({
         // subQuery: false,
         attributes: [
@@ -243,7 +244,8 @@ exports.getAggreagteTransactions = async (req, res) => {
           ],
         ],
       });
-      console.log('Refund Array is', refundArray);
+
+      // console.log('Refund Array is', refundArray);
 
       let tranArray = [];
       for (m = 0; m < combinedTransaction.length; m++) {
@@ -305,6 +307,7 @@ exports.getAggreagteCardWiseData = async (req, res) => {
   let token = '';
   let decoded = '';
   token = req.headers.authorization.split(' ');
+
   decoded = jwt.verify(token[1], process.env.JWT_SECRET);
   let mid = '';
   let processorId = '';
@@ -321,21 +324,21 @@ exports.getAggreagteCardWiseData = async (req, res) => {
     processorId = null;
   } else {
     dateFrom =
-      moment(req.query.dateFrom).utc().format('YYYY-MM-DD') + ' 00:00:00';
+    moment(req.query.dateFrom).utc().format('YYYY-MM-DD') + ' 00:00:00';
     // let dateFrom = moment(req.query.dateFrom).format('YYYY-MM-DD HH:mm:ss');
     // let dateFrom = req.query.dateFrom;
     dateTo =
-      moment(req.query.dateFrom).utc().format('YYYY-MM-DD') + ' 23:59:59';
+    moment(req.query.dateTo).utc().format('YYYY-MM-DD') + ' 23:59:59';
     if (req.query.processorId && req.query.processorId != '') {
       processorId = req.query.processorId;
     } else {
       processorId = null;
     }
   }
-
+  
   let paidBy = '',
-    paymentType = '';
-
+  paymentType = '';
+  
   await db.sequelize
     .query(
       'CALL sp_getcardwiseaggregate(:dateFrom,:dateTo,:processorId,:paidBy,:paymentType,:merchantId)',
@@ -370,7 +373,7 @@ exports.getAggreagteCardWiseData = async (req, res) => {
       console.log(err);
       res.status(500).json({
         message: 'Something went wrong',
-        error: err,
+        error: err.message,
       });
     });
 };
