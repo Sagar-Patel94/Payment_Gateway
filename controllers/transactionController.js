@@ -5332,12 +5332,10 @@ exports.fluidRefundTransactions = async (
   res
 ) => {
   
-  console.log(userGateWayData.GatewayApiKey, "*******/////")
   const txnData = await exports.getTxnFromFluidPay(
     req.body.TransactionId,
     userGateWayData.GatewayApiKey
     );
-    return;
   if (req.body.TransactionId != undefined && req.body.MerchantId != undefined) {
     const txntype = exports.TransactionType(req.body.TransactionFor);
     
@@ -5370,8 +5368,7 @@ exports.fluidRefundTransactions = async (
         body: jsonString,
       };
     }
-    
-    res.status(200).json(txnData['data'].status);
+    console.log("ssssssssssssss", transactionId.CustomerId, "ssssssssssssssssssss");
     return;
     if (txnData['data'].status == 'settled' && transactionId.Type != '2') {
       const requestCreated = {
@@ -5381,12 +5378,12 @@ exports.fluidRefundTransactions = async (
         MerchantId: userInfo.id,
       };
       await models.ResponseRequestTable.create(requestCreated);
-
+      
       const response = await fetch(
         `${process.env.FLUIDPAY_API_URL}/api/transaction/${transactionId.TransactionId}/refund`,
         requestOptions
-      );
-      const data = await response.json();
+        );
+        const data = await response.json();
 
       if (data.status === 'success') {
         const transData = data['data'];
@@ -5403,63 +5400,59 @@ exports.fluidRefundTransactions = async (
 
         const createNewTransaction = await models.Transaction.create(
           {
-            TransactionId: newDataC['data'].id,
-            CustomerId: findCustomer.id,
-            MerchantId: userInfo.id,
-            Amount: req.body.Amount,
-            CardNumber: newDataC['data'].response_body['card'].last_four,
-            PaymentMethod: paymentMethods,
-            Type: req.body.TransactionType,
-            Status: newDataC['data'].status,
-            BillingEmail: newDataC['data'].billing_address['email'],
-            BillingCustomerName: newDataC['data'].billing_address['first_name'],
-            BillingAddress: newDataC['data'].billing_address['address_line_1'],
-            BillingCity: newDataC['data'].billing_address['city'],
-            BillingState: stateData != undefined ? stateData.id : null,
-            BillingPostalCode: newDataC['data'].billing_address['postal_code'],
-            BillingCountry: countryData != undefined ? countryData.id : null,
+            TransactionId: txnData['data'].id,
+            CustomerId: transactionId.CustomerId,
+            MerchantId: transactionId.MerchantId,
+            Amount: transactionId.Amount,
+            CardNumber: txnData['data'].response_body.card.last_four,
+            PaymentMethod: txnData['data'].payment_method,
+            Type: txnData['data'].type,
+            Status: "1",
+            BillingEmail: txnData['data'].billing_address['email'],
+            BillingCustomerName: txnData['data'].billing_address['first_name'],
+            BillingAddress: txnData['data'].billing_address['address_line_1'],
+            BillingCity: txnData['data'].billing_address['city'],
+            BillingState: txnData['data'].billing_address['state'],
+            BillingPostalCode: txnData['data'].billing_address['postal_code'],
+            BillingCountry: txnData['data'].billing_address['country'],
             BillingCountryCode: req.body.BillingCountryCode,
-            BillingPhoneNumber: newDataC['data'].billing_address['phone'],
+            BillingPhoneNumber: txnData['data'].billing_address['phone'],
             IsShippingSame: req.body.shippingSameAsBilling,
-            ShippingEmail: newDataC['data'].billing_address['email'],
+            ShippingEmail: txnData['data'].billing_address['email'],
             ShippingCustomerName:
-              newDataC['data'].billing_address['first_name'],
-            ShippingAddress: newDataC['data'].billing_address['address_line_1'],
-            ShippingCity: newDataC['data'].billing_address['city'],
-            ShippingState: stateData != undefined ? stateData.id : null,
-            ShippingPostalCode: newDataC['data'].billing_address['postal_code'],
-            ShippingCountry: countryData != undefined ? countryData.id : null,
-            ShippingPhoneNumber: newDataC['data'].billing_address['phone'],
-            ExpiryDate: req.body.ExpiryDate.replace(/\s/g, '').replace(
-              /\\|\//g,
-              ''
-            ),
-            Cvv: req.body.Cvv,
-            ConvenienceFeeValue: feeAmount != 0 ? feeAmount : 0,
-            ConvenienceFeeMinimum: userGateWayData.ConvenienceFeeMinimum,
+            transactionId.ShippingCustomerName,
+            ShippingAddress: txnData['data'].billing_address['address_line_1'],
+            ShippingCity: txnData['data'].billing_address['city'],
+            ShippingState: txnData['data'].shipping_address['state'],
+            ShippingPostalCode: txnData['data'].billing_address['postal_code'],
+            ShippingCountry: txnData['data'].shipping_address['country'],
+            ShippingPhoneNumber: txnData['data'].billing_address['phone'],
+            ExpiryDate: transactionId.ExpiryDate,
+            Cvv: transactionId.Cvv,
+            ConvenienceFeeValue: transactionId.ConvenienceFeeValue,
+            ConvenienceFeeMinimum: transactionId.ConvenienceFeeMinimum,
             ConvenienceFeeType: userGateWayData.ConvenienceFeeType,
-            AuthCode: newDataC['data'].response_body['card'].auth_code,
+            AuthCode: txnData['data'].response_body['card'].auth_code,
             TransactionGateWay: 'FluidPay',
-            Refund: false,
+            Refund: true,
             Void: false,
             Capture: false,
             Tokenization: false, // req.body.PaymentTokenization,
-            Message: req.body.Message,
-            Description: req.body.Description,
-            ReferenceNo: req.body.ReferenceNo,
+            Message: transactionId.Message,
+            Description: transactionId.Description,
+            ReferenceNo: transactionId.ReferenceNo,
             ConvenienceFeeActive:
               minmumTxn != ''
                 ? minmumTxn
                 : userGateWayData.ConvenienceFeeActive,
-            RequestOrigin: req.body.RequestOrigin,
-            createdAt: newDataC['data'].created_at,
-            updatedAt: newDataC['data'].updated_at,
-            ProcessorId: userGateWayData.ProcessorId,
+            RequestOrigin: transactionId.RequestOrigin,
+            createdAt: txnData['data'].created_at,
+            updatedAt: txnData['data'].updated_at,
+            SettledDate: txnData['data'].settled_at,
+            ProcessorId: txnData['data'].response_body.card.processor_id,
             SuggestedMode:
-              req.body.SuggestedMode != undefined
-                ? req.body.SuggestedMode
-                : 'Card',
-            TipAmount: parseFloat(req.body.TipAmount),
+              transactionId.SuggestedMode,
+            TipAmount: transactionId.TipAmount,
           }
         )
 
@@ -5750,7 +5743,6 @@ exports.getTxnFromFluidPay = async (txnId, privateKey) => {
       requestOptions
     );
     const data = await response.json();
-    console.log("++++++++++++++++++++++++++++++", response, "****************************")
 
     if (data.status === 'success') {
       return data;
@@ -5761,10 +5753,11 @@ exports.getTxnFromFluidPay = async (txnId, privateKey) => {
     }
   } catch (err) {
     Sentry.captureException(err);
-    res.status(500).json({
-      message: 'Something went wrong',
-      error: err,
-    });
+    console.log(err.message);
+    // res.status(500).json({
+    //   message: 'Something went wrong',
+    //   error: err,
+    // });
   }
 };
 
